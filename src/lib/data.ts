@@ -3,7 +3,7 @@
 export interface LineItem {
   description: string;
   qty: number;
-  unitCents: number;
+  unit: number;
 }
 
 export interface Customer {
@@ -30,9 +30,9 @@ export const demoInvoice: Invoice = {
   customer: { name: 'Northwind Traders', email: 'ap@northwind.example', taxId: null },
   currency: 'USD',
   lineItems: [
-    { description: 'Annual subscription — Pro plan', qty: 1, unitCents: 480000 },
-    { description: 'Onboarding & setup', qty: 1, unitCents: 120000 },
-    { description: 'Additional seats', qty: 12, unitCents: 3500 },
+    { description: 'Annual subscription — Pro plan', qty: 1, unit: 4800 },
+    { description: 'Onboarding & setup', qty: 1, unit: 1200 },
+    { description: 'Additional seats', qty: 12, unit: 35 },
   ],
   dueDate: '2026-09-15',
   status: 'draft',

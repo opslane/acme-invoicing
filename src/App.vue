@@ -59,8 +59,8 @@ async function onExport(): Promise<void> {
           <tr v-for="(li, i) in invoice.lineItems" :key="i">
             <td>{{ li.description }}</td>
             <td>{{ li.qty }}</td>
-            <td class="r">{{ formatMoney(li.unitCents, invoice.currency) }}</td>
-            <td class="r">{{ formatMoney(li.qty * li.unitCents, invoice.currency) }}</td>
+            <td class="r">{{ formatMoney(li.unit, invoice.currency) }}</td>
+            <td class="r">{{ formatMoney(li.qty * li.unit, invoice.currency) }}</td>
           </tr>
         </tbody>
         <tfoot>
