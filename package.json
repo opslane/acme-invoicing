@@ -1,0 +1,24 @@
+{
+  "name": "acme-invoicing",
+  "version": "1.0.0",
+  "private": false,
+  "type": "module",
+  "description": "Acme Invoicing — send invoices, track payments, export reports. A sample app instrumented with Opslane.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@opslane/sdk": "^4.1.0",
+    "vue": "^3.5.40"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "typescript": "^5.4.0",
+    "vite": "^6.4.3",
+    "vitest": "^2.1.9"
+  }
+}
