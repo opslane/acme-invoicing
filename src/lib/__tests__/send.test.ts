@@ -21,4 +21,8 @@ describe('sendInvoice', () => {
   it('sends when eligible', () => {
     expect(sendInvoice(base).sent).toBe(true);
   });
+
+  it('reports missing_tax_id when the customer has no tax id', () => {
+    expect(sendInvoice(noTax)).toEqual({ sent: false, reason: 'missing_tax_id' });
+  });
 });
