@@ -1,23 +1,22 @@
 import type { Invoice } from './data';
 
-/**
- * Send eligibility for an invoice.
- *
- * NOTE (planted bug for the "Send invoice" dead-click card): when the customer
- * has no tax ID, `sendInvoice` silently returns without sending and without
- * telling the user why. The button stays enabled and clickable (cursor:pointer),
- * so users click it repeatedly and nothing happens — no error is ever thrown, so
- * an exception tracker sees nothing. The product decision: block Send with an
- * explanation, or allow sending without a tax ID.
- */
+/** Send eligibility for an invoice. */
 export function canSend(invoice: Invoice): boolean {
   return Boolean(invoice.customer.taxId);
 }
 
-export function sendInvoice(invoice: Invoice): { sent: boolean } {
+export interface SendResult {
+  sent: boolean;
+  reason?: 'missing_tax_id';
+}
+
+/**
+ * Send an invoice. When the customer has no tax ID we now return a reason so
+ * the UI can explain why Send is unavailable, instead of silently doing nothing.
+ */
+export function sendInvoice(invoice: Invoice): SendResult {
   if (!canSend(invoice)) {
-    // BUG: silent no-op. No thrown error, no user feedback.
-    return { sent: false };
+    return { sent: false, reason: 'missing_tax_id' };
   }
   return { sent: true };
 }
