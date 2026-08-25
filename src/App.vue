@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { demoInvoice } from './lib/data';
 import { formatMoney, invoiceTotal } from './lib/money';
-import { sendInvoice } from './lib/send';
+import { sendInvoice, sendBlockedReason } from './lib/send';
 import { changeCurrency } from './lib/currency';
 import { exportInvoices } from './lib/exportReport';
 
@@ -11,10 +11,10 @@ const view = ref<'invoice' | 'reports'>('invoice');
 
 const total = computed(() => invoiceTotal(invoice.value.lineItems));
 
-// "Send invoice" — silently does nothing when the customer has no tax id.
-// Intentionally inert: no DOM change, no request, so repeated clicks read as
-// a dead_click / rage_click friction signal.
+const sendBlocked = computed(() => sendBlockedReason(invoice.value));
+
 function onSend(): void {
+  if (sendBlocked.value) return;
   sendInvoice(invoice.value);
 }
 
@@ -80,9 +80,10 @@ async function onExport(): Promise<void> {
       </div>
 
       <div class="actions">
-        <button class="primary" data-testid="send-invoice" @click="onSend">Send invoice</button>
+        <button class="primary" data-testid="send-invoice" :disabled="!!sendBlocked" @click="onSend">Send invoice</button>
         <button class="ghost" data-testid="export" @click="onExport">Export report</button>
       </div>
+      <p v-if="sendBlocked" data-testid="send-blocked-reason" class="muted small">{{ sendBlocked }}</p>
     </main>
 
     <main v-else class="sheet">
@@ -117,5 +118,6 @@ table.lines { width:100%; border-collapse:collapse; margin:24px 0; }
 .controls select, .controls input { padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px; color:var(--ink); background:#fff; }
 .actions { display:flex; gap:12px; }
 button.primary { background:var(--accent); color:#fff; border:0; padding:11px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
+button.primary:disabled { opacity:.55; cursor:not-allowed; }
 button.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); padding:11px 20px; border-radius:8px; font-size:14px; cursor:pointer; }
 </style>
