@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { demoInvoice } from './lib/data';
 import { formatMoney, invoiceTotal } from './lib/money';
-import { sendInvoice } from './lib/send';
+import { canSend, sendInvoice } from './lib/send';
 import { changeCurrency } from './lib/currency';
 import { exportInvoices } from './lib/exportReport';
 
@@ -11,11 +11,18 @@ const view = ref<'invoice' | 'reports'>('invoice');
 
 const total = computed(() => invoiceTotal(invoice.value.lineItems));
 
-// "Send invoice" — silently does nothing when the customer has no tax id.
-// Intentionally inert: no DOM change, no request, so repeated clicks read as
-// a dead_click / rage_click friction signal.
+const sendBlocked = computed(() => !canSend(invoice.value));
+const taxIdDraft = ref('');
+
 function onSend(): void {
   sendInvoice(invoice.value);
+}
+
+function onAddTaxId(): void {
+  const taxId = taxIdDraft.value.trim();
+  if (!taxId) return;
+  invoice.value = { ...invoice.value, customer: { ...invoice.value.customer, taxId } };
+  taxIdDraft.value = '';
 }
 
 // Currency change is silently ignored once line items exist.
@@ -79,8 +86,16 @@ async function onExport(): Promise<void> {
         </label>
       </div>
 
+      <div v-if="sendBlocked" class="send-blocked" data-testid="send-blocked">
+        <p>This invoice can't be sent: {{ invoice.customer.name }} has no tax ID on file. Add one to enable sending.</p>
+        <div class="add-tax-id">
+          <input data-testid="tax-id-input" type="text" v-model="taxIdDraft" placeholder="Tax ID (e.g. EU123456789)" @keyup.enter="onAddTaxId" />
+          <button class="ghost" data-testid="add-tax-id" @click="onAddTaxId">Add tax ID</button>
+        </div>
+      </div>
+
       <div class="actions">
-        <button class="primary" data-testid="send-invoice" @click="onSend">Send invoice</button>
+        <button class="primary" data-testid="send-invoice" :disabled="sendBlocked" @click="onSend">Send invoice</button>
         <button class="ghost" data-testid="export" @click="onExport">Export report</button>
       </div>
     </main>
@@ -116,6 +131,11 @@ table.lines { width:100%; border-collapse:collapse; margin:24px 0; }
 .controls label { display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted); }
 .controls select, .controls input { padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px; color:var(--ink); background:#fff; }
 .actions { display:flex; gap:12px; }
+.send-blocked { border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:var(--muted); }
+.send-blocked p { margin:0 0 10px; }
+.add-tax-id { display:flex; gap:8px; }
+.add-tax-id input { padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; }
 button.primary { background:var(--accent); color:#fff; border:0; padding:11px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
+button.primary:disabled { opacity:.45; cursor:not-allowed; }
 button.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); padding:11px 20px; border-radius:8px; font-size:14px; cursor:pointer; }
 </style>
