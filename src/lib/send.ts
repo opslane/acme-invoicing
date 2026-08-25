@@ -3,21 +3,25 @@ import type { Invoice } from './data';
 /**
  * Send eligibility for an invoice.
  *
- * NOTE (planted bug for the "Send invoice" dead-click card): when the customer
- * has no tax ID, `sendInvoice` silently returns without sending and without
- * telling the user why. The button stays enabled and clickable (cursor:pointer),
- * so users click it repeatedly and nothing happens — no error is ever thrown, so
- * an exception tracker sees nothing. The product decision: block Send with an
- * explanation, or allow sending without a tax ID.
+ * Invoices cannot be sent while the customer has no tax ID: downstream
+ * compliance requires one on every issued invoice. The UI disables Send and
+ * surfaces the reason from `sendBlockedReason` instead of silently no-op'ing.
  */
-export function canSend(invoice: Invoice): boolean {
-  return Boolean(invoice.customer.taxId);
+export function sendBlockedReason(invoice: Invoice): string | null {
+  if (!invoice.customer.taxId) {
+    return "Add the customer's tax ID to send this invoice.";
+  }
+  return null;
 }
 
-export function sendInvoice(invoice: Invoice): { sent: boolean } {
-  if (!canSend(invoice)) {
-    // BUG: silent no-op. No thrown error, no user feedback.
-    return { sent: false };
+export function canSend(invoice: Invoice): boolean {
+  return sendBlockedReason(invoice) === null;
+}
+
+export function sendInvoice(invoice: Invoice): { sent: boolean; reason?: string } {
+  const reason = sendBlockedReason(invoice);
+  if (reason) {
+    return { sent: false, reason };
   }
   return { sent: true };
 }
