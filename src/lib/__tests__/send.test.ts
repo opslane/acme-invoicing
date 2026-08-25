@@ -5,7 +5,7 @@ import type { Invoice } from '../data';
 const base: Invoice = {
   id: 'inv_1', number: 'INV-1',
   customer: { name: 'Acme', email: 'a@acme.test', taxId: 'EU123' },
-  currency: 'USD', lineItems: [{ description: 'x', qty: 1, unitCents: 100 }],
+  currency: 'USD', lineItems: [{ description: 'x', qty: 1, unit: 100 }],
   dueDate: '2026-09-01', status: 'draft',
 };
 const noTax: Invoice = { ...base, customer: { ...base.customer, taxId: null } };
@@ -19,6 +19,10 @@ describe('canSend', () => {
 
 describe('sendInvoice', () => {
   it('sends when eligible', () => {
-    expect(sendInvoice(base).sent).toBe(true);
+    expect(sendInvoice(base)).toEqual({ sent: true });
+  });
+
+  it('blocks with a missing_tax_id reason when the customer has no tax id', () => {
+    expect(sendInvoice(noTax)).toEqual({ sent: false, reason: 'missing_tax_id' });
   });
 });
